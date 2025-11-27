@@ -15,18 +15,16 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { ExplainThis } from './ExplainThis';
 
 export const PayoffScenario = () => {
-  const { debts } = useAppContext();
+  const { debts, strategy, setStrategy } = useAppContext();
   const totalMinimumPayment = useMemo(() => debts.reduce((sum, d) => sum + d.minimumPayment, 0), [debts]);
 
   const [monthlyPayment, setMonthlyPayment] = useState(totalMinimumPayment + 500);
-  const [strategy, setStrategy] = useState<'avalanche' | 'snowball'>('avalanche');
 
   useEffect(() => {
-    // Ensure monthly payment is always at least the total minimum payment
     if (monthlyPayment < totalMinimumPayment || totalMinimumPayment === 0) {
       setMonthlyPayment(totalMinimumPayment + 500);
     }
-  }, [totalMinimumPayment]);
+  }, [totalMinimumPayment, monthlyPayment]);
 
   const scenarioResult = useMemo(() => {
     if (debts.length === 0 || monthlyPayment < totalMinimumPayment) {
@@ -49,7 +47,7 @@ export const PayoffScenario = () => {
     let result = '';
     if (years > 0) result += `${years} year${years > 1 ? 's' : ''} `;
     if (months > 0) result += `${months} month${months > 1 ? 's' : ''}`;
-    return result.trim();
+    return result.trim() || 'Less than a month';
   }, [scenarioResult]);
 
   return (
@@ -65,16 +63,17 @@ export const PayoffScenario = () => {
           <div className="space-y-2">
             <Label htmlFor="strategy">Payoff Strategy</Label>
             <div className="flex items-center">
-              <Select value={strategy} onValueChange={(val: 'avalanche' | 'snowball') => setStrategy(val)}>
+              <Select value={strategy} onValueChange={(val) => setStrategy(val as any)}>
                 <SelectTrigger id="strategy">
                   <SelectValue placeholder="Select a strategy" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="avalanche">Avalanche (Highest APR first)</SelectItem>
                   <SelectItem value="snowball">Snowball (Lowest Balance first)</SelectItem>
+                  <SelectItem value="custom">Custom Order</SelectItem>
                 </SelectContent>
               </Select>
-              <ExplainThis explanation="Avalanche saves you the most money on interest. Snowball gives you quick wins by paying off small debts first." />
+              <ExplainThis explanation="Choose a strategy or select 'Custom' to set your own payoff order in the table below." />
             </div>
           </div>
           <div className="space-y-2">

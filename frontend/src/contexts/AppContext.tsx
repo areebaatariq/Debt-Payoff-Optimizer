@@ -1,6 +1,8 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 import { FinancialContext, DebtTradeline } from '@/types';
 
+type PayoffStrategy = 'avalanche' | 'snowball' | 'custom';
+
 interface AppContextType {
   financialContext: FinancialContext | null;
   setFinancialContext: (context: FinancialContext) => void;
@@ -8,6 +10,9 @@ interface AppContextType {
   addDebt: (debt: Omit<DebtTradeline, 'id'>) => void;
   updateDebt: (debt: DebtTradeline) => void;
   deleteDebt: (id: string) => void;
+  strategy: PayoffStrategy;
+  setStrategy: (strategy: PayoffStrategy) => void;
+  reorderDebts: (fromIndex: number, toIndex: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -15,6 +20,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [financialContext, setFinancialContextState] = useState<FinancialContext | null>(null);
   const [debts, setDebts] = useState<DebtTradeline[]>([]);
+  const [strategy, setStrategy] = useState<PayoffStrategy>('avalanche');
 
   const setFinancialContext = (context: FinancialContext) => {
     setFinancialContextState(context);
@@ -33,8 +39,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setDebts(prev => prev.filter(d => d.id !== id));
   };
 
+  const reorderDebts = (fromIndex: number, toIndex: number) => {
+    setDebts(prev => {
+      const newDebts = [...prev];
+      const [movedItem] = newDebts.splice(fromIndex, 1);
+      newDebts.splice(toIndex, 0, movedItem);
+      return newDebts;
+    });
+  };
+
   return (
-    <AppContext.Provider value={{ financialContext, setFinancialContext, debts, addDebt, updateDebt, deleteDebt }}>
+    <AppContext.Provider value={{ 
+      financialContext, setFinancialContext, 
+      debts, addDebt, updateDebt, deleteDebt,
+      strategy, setStrategy,
+      reorderDebts
+    }}>
       {children}
     </AppContext.Provider>
   );

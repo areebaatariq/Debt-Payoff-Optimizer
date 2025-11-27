@@ -22,7 +22,7 @@ export interface PayoffScenarioResult {
 export const calculatePayoffScenario = (
   initialDebts: DebtTradeline[],
   monthlyPayment: number,
-  strategy: 'avalanche' | 'snowball'
+  strategy: 'avalanche' | 'snowball' | 'custom'
 ): PayoffScenarioResult => {
   if (initialDebts.length === 0 || monthlyPayment <= 0) {
     return { payoffInMonths: 0, totalInterestPaid: 0, chartData: [] };
@@ -47,24 +47,19 @@ export const calculatePayoffScenario = (
     }
     totalInterestPaid += interestForMonth;
 
-    // 2. Sort debts based on strategy
+    // 2. Sort debts based on strategy (if not custom)
     if (strategy === 'avalanche') {
       debts.sort((a, b) => b.apr - a.apr);
-    } else { // snowball
+    } else if (strategy === 'snowball') {
       debts.sort((a, b) => a.balance - b.balance);
     }
+    // For 'custom', we don't sort. We use the order provided.
 
-    // 3. Make minimum payments
-    const paidOffInMinimums: string[] = [];
-    for (const debt of debts) {
-      const payment = Math.min(debt.balance, debt.minimumPayment);
-      if (paymentRemaining >= payment) {
-        // This logic is simplified: we assume the extra payment covers minimums.
-        // A more complex model would pay minimums first, then apply extra.
-      }
-    }
+    // 3. Make minimum payments (simplified)
+    // This part is simplified for the model; a real-world app would be more complex.
+    // We assume the total monthly payment covers all minimums.
 
-    // 4. Apply remaining payment (the "avalanche" or "snowball" part)
+    // 4. Apply remaining payment
     for (const debt of debts) {
         if (paymentRemaining > 0) {
             const payment = Math.min(debt.balance, paymentRemaining);
