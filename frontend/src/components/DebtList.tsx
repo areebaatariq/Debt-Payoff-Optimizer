@@ -10,7 +10,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { AddEditDebtDialog } from './AddEditDebtDialog';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, Upload } from 'lucide-react';
+import { CSVUploadDialog } from './CSVUploadDialog';
 
 const DEBT_TYPE_MAP: { [key: string]: string } = {
   credit_card: 'Credit Card',
@@ -27,7 +28,17 @@ export const DebtList = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Your Debts</CardTitle>
-        <AddEditDebtDialog trigger={<Button>Add New Debt</Button>} />
+        <div className="flex items-center space-x-2">
+          <CSVUploadDialog 
+            trigger={
+              <Button variant="outline" size="sm">
+                <Upload className="mr-2 h-4 w-4" />
+                Upload CSV
+              </Button>
+            } 
+          />
+          <AddEditDebtDialog trigger={<Button size="sm">Add New Debt</Button>} />
+        </div>
       </CardHeader>
       <CardContent>
         <Table>
