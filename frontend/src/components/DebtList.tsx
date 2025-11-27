@@ -1,3 +1,4 @@
+import React from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -106,7 +107,7 @@ export const DebtList = () => {
             )}
           </TableBody>
         </Table>
-      </Content>
+      </CardContent>
     </Card>
   );
 };
