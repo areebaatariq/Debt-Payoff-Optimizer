@@ -1,5 +1,6 @@
 import { DebtList } from "@/components/DebtList";
 import { DebtSummary } from "@/components/DebtSummary";
+import { PayoffScenario } from "@/components/PayoffScenario";
 
 const Dashboard = () => {
   return (
@@ -12,6 +13,7 @@ const Dashboard = () => {
       </div>
       <DebtSummary />
       <DebtList />
+      <PayoffScenario />
     </div>
   );
 };
