@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -21,6 +21,13 @@ export const PayoffScenario = () => {
   const [monthlyPayment, setMonthlyPayment] = useState(totalMinimumPayment + 500);
   const [strategy, setStrategy] = useState<'avalanche' | 'snowball'>('avalanche');
 
+  useEffect(() => {
+    // Ensure monthly payment is always at least the total minimum payment
+    if (monthlyPayment < totalMinimumPayment || totalMinimumPayment === 0) {
+      setMonthlyPayment(totalMinimumPayment + 500);
+    }
+  }, [totalMinimumPayment]);
+
   const scenarioResult = useMemo(() => {
     if (debts.length === 0 || monthlyPayment < totalMinimumPayment) {
       return null;
@@ -33,6 +40,16 @@ export const PayoffScenario = () => {
     const date = new Date();
     date.setMonth(date.getMonth() + scenarioResult.payoffInMonths);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+  }, [scenarioResult]);
+
+  const timeToFreedom = useMemo(() => {
+    if (!scenarioResult || scenarioResult.payoffInMonths === 0) return 'N/A';
+    const years = Math.floor(scenarioResult.payoffInMonths / 12);
+    const months = scenarioResult.payoffInMonths % 12;
+    let result = '';
+    if (years > 0) result += `${years} year${years > 1 ? 's' : ''} `;
+    if (months > 0) result += `${months} month${months > 1 ? 's' : ''}`;
+    return result.trim();
   }, [scenarioResult]);
 
   return (
@@ -90,7 +107,7 @@ export const PayoffScenario = () => {
               </Card>
                <Card>
                 <CardHeader><CardTitle>Time to Freedom</CardTitle></CardHeader>
-                <CardContent><p className="text-xl font-bold">{scenarioResult.payoffInMonths} months</p></CardContent>
+                <CardContent><p className="text-xl font-bold">{timeToFreedom}</p></CardContent>
               </Card>
             </div>
             <ResponsiveContainer width="100%" height={300}>

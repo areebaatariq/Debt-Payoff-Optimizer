@@ -12,6 +12,7 @@ import {
 import { AddEditDebtDialog } from './AddEditDebtDialog';
 import { Pencil, Trash2, Upload } from 'lucide-react';
 import { CSVUploadDialog } from './CSVUploadDialog';
+import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
 
 const DEBT_TYPE_MAP: { [key: string]: string } = {
   credit_card: 'Credit Card',
@@ -75,9 +76,14 @@ export const DebtList = () => {
                           </Button>
                         }
                       />
-                      <Button variant="ghost" size="icon" onClick={() => deleteDebt(debt.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <DeleteConfirmationDialog
+                        onConfirm={() => deleteDebt(debt.id)}
+                        trigger={
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        }
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
