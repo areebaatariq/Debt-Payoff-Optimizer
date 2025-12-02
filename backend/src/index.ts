@@ -41,26 +41,32 @@ app.use(cors({
       return callback(null, true);
     }
     
-    // In production, allow any Render subdomain
-    if (!isDevelopment && origin.includes('.onrender.com')) {
-      return callback(null, true);
+    // In production (or when NODE_ENV is not set but on Render), allow any Render subdomain
+    // Check for Render by looking for .onrender.com in origin or checking RENDER environment
+    const isOnRender = process.env.RENDER || origin.includes('.onrender.com');
+    if (!isDevelopment || isOnRender) {
+      if (origin.includes('.onrender.com')) {
+        return callback(null, true);
+      }
     }
     
     // In development, allow any localhost port for flexibility
-    if (isDevelopment && origin.startsWith('http://localhost:')) {
+    if (isDevelopment && !isOnRender && origin.startsWith('http://localhost:')) {
       return callback(null, true);
     }
     
     // Also allow 127.0.0.1 in development
-    if (isDevelopment && origin.startsWith('http://127.0.0.1:')) {
+    if (isDevelopment && !isOnRender && origin.startsWith('http://127.0.0.1:')) {
       return callback(null, true);
     }
     
     // Log rejected origin for debugging
-    console.warn(`CORS: Origin "${origin}" not allowed`);
+    console.warn(`CORS: Origin "${origin}" not allowed. Allowed origins: ${allowedOrigins.join(', ')}`);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Session-Id'],
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

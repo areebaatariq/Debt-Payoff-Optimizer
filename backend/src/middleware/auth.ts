@@ -10,6 +10,11 @@ export const requireSession = (
   res: Response,
   next: NextFunction
 ) => {
+  // Skip authentication for OPTIONS requests (CORS preflight)
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   const sessionId = req.headers['x-session-id'] as string;
 
   if (!sessionId) {
