@@ -1,0 +1,73 @@
+# PathLight Recommendation Engine Configuration
+# This file defines thresholds and rules for debt recommendations
+
+# Credit Score Ranges
+credit_score_ranges:
+  poor: [0, 579]
+  fair: [580, 669]
+  good: [670, 739]
+  excellent: [740, 850]
+
+# Consolidation Rules
+consolidation:
+  enabled: true
+  min_debts: 3
+  min_apr: 15
+  max_total_debt: 50000
+  eligible_credit_scores:
+    - fair
+    - good
+  debt_types:
+    - credit_card
+  estimated_apr: 18
+  payment_percentage: 0.02  # 2% of balance
+
+# Balance Transfer Rules
+balance_transfer:
+  enabled: true
+  min_debts: 2
+  min_apr: 18
+  max_total_debt: 30000
+  eligible_credit_scores:
+    - good
+    - excellent
+  debt_types:
+    - credit_card
+  estimated_promo_apr: 3
+  transfer_fee_percentage: 0.03  # 3%
+  promo_period_months: 18
+
+# Debt Settlement Rules
+settlement:
+  enabled: true
+  eligible_credit_scores:
+    - poor
+  min_apr: 20
+  max_balance: 10000
+  estimated_settlement_percentage: 0.5  # 50% of balance
+  settlement_period_months: 12
+
+# Refinancing Rules
+refinancing:
+  enabled: true
+  min_balance: 10000
+  min_apr: 10
+  eligible_credit_scores:
+    - good
+    - excellent
+  excluded_debt_types:
+    - credit_card
+  apr_improvement_estimate: 3  # Percentage points improvement
+  evaluation_period_months: 60
+
+# Fit Score Thresholds
+fit_score_thresholds:
+  high:
+    savings_min: 1500
+    credit_score_requirement: excellent  # Optional enhancement
+  medium:
+    savings_min: 500
+  low:
+    savings_max: 499
+
+

@@ -6,12 +6,21 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { AppProvider } from "./contexts/AppContext";
+import { SessionInitializer } from "./components/SessionInitializer";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
-  <AppProvider>
-    <QueryClientProvider client={queryClient}>
+  <QueryClientProvider client={queryClient}>
+    <AppProvider>
+      <SessionInitializer />
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -23,8 +32,8 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
-    </QueryClientProvider>
-  </AppProvider>
+    </AppProvider>
+  </QueryClientProvider>
 );
 
 export default App;

@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
+import { useAIContextTrigger } from '@/hooks/useAIContextTrigger';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAIGuidance } from '@/hooks/useAIGuidance';
+import { useAnalytics, AnalyticsEvents } from '@/hooks/useAnalytics';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -24,7 +28,60 @@ const DEBT_TYPE_MAP: { [key: string]: string } = {
 };
 
 export const DebtList = () => {
-  const { debts, deleteDebt, strategy, reorderDebts } = useAppContext();
+  const { debts, deleteDebt, strategy, reorderDebts, aggregation } = useAppContext();
+  const [showAISummary, setShowAISummary] = useState(false);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [debtsCount, setDebtsCount] = useState(debts.length);
+  const { getGuidanceAsync } = useAIGuidance();
+  const { track } = useAnalytics();
+
+  // Auto-trigger AI summary when debts are added
+  useEffect(() => {
+    if (debts.length > debtsCount && debts.length > 0) {
+      // Debts were added
+      const totalDebt = aggregation?.totalDebt || 0;
+      const avgApr = aggregation?.averageApr || 0;
+      
+      getGuidanceAsync({
+        action: `I just added ${debts.length} debt${debts.length > 1 ? 's' : ''}. My total debt is $${totalDebt.toLocaleString()} with an average APR of ${avgApr.toFixed(2)}%. Can you give me a brief summary of my situation?`,
+      }).then((result) => {
+        setAiSummary(result.guidance);
+        setShowAISummary(true);
+      });
+      
+      setDebtsCount(debts.length);
+    }
+  }, [debts.length, debtsCount, aggregation, getGuidanceAsync]);
+
+  // Check for inconsistent data
+  useEffect(() => {
+    const checkInconsistencies = () => {
+      const issues: string[] = [];
+      
+      debts.forEach(debt => {
+        const expectedMin = debt.balance * 0.02;
+        if (debt.minimumPayment < expectedMin * 0.5 && debt.minimumPayment > 0) {
+          issues.push(`The minimum payment for your ${debt.debtType} seems unusually low.`);
+        }
+      });
+
+      if (issues.length > 0) {
+        getGuidanceAsync({
+          action: `I notice: ${issues[0]} Should I double-check this?`,
+        }).then((result) => {
+          if (!showAISummary) {
+            setAiSummary(result.guidance);
+            setShowAISummary(true);
+          }
+        });
+      }
+    };
+
+    if (debts.length > 0) {
+      const timeoutId = setTimeout(checkInconsistencies, 2000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [debts, getGuidanceAsync, showAISummary]);
 
   return (
     <Card>
@@ -45,7 +102,27 @@ export const DebtList = () => {
           <AddEditDebtDialog trigger={<Button size="sm">Add New Debt</Button>} />
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        {showAISummary && aiSummary && (
+          <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950">
+            <AlertDescription>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="font-medium mb-1">💡 AI Insight</p>
+                  <p className="text-sm">{aiSummary}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAISummary(false)}
+                  className="ml-2"
+                >
+                  ×
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
         <Table>
           <TableHeader>
             <TableRow>
@@ -93,7 +170,10 @@ export const DebtList = () => {
                         }
                       />
                       <DeleteConfirmationDialog
-                        onConfirm={() => deleteDebt(debt.id)}
+                        onConfirm={() => {
+                          track(AnalyticsEvents.DEBT_DELETED, { debtType: debt.debtType });
+                          deleteDebt(debt.id);
+                        }}
                         trigger={
                           <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
                             <Trash2 className="h-4 w-4" />

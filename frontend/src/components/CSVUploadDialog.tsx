@@ -12,17 +12,17 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAppContext } from '@/contexts/AppContext';
-import Papa from 'papaparse';
-import { DebtTradeline } from '@/types';
+import { useDebts } from '@/hooks/useDebts';
 import { showError, showSuccess } from '@/utils/toast';
+import { useAnalytics, AnalyticsEvents } from '@/hooks/useAnalytics';
 
 const debtTypes = ['credit_card', 'personal_loan', 'student_loan', 'auto_loan', 'other'];
 
 export const CSVUploadDialog = ({ trigger }: { trigger: React.ReactNode }) => {
-  const { addDebt } = useAppContext();
+  const { uploadCSVAsync, isUploading } = useDebts();
   const [file, setFile] = useState<File | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const { track } = useAnalytics();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -30,57 +30,24 @@ export const CSVUploadDialog = ({ trigger }: { trigger: React.ReactNode }) => {
     }
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!file) {
       showError('Please select a file to upload.');
       return;
     }
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        let addedCount = 0;
-        let errorCount = 0;
-
-        results.data.forEach((row: any) => {
-          const balance = parseFloat(row.balance);
-          const apr = parseFloat(row.apr);
-          const minimumPayment = parseFloat(row.minimumPayment);
-          const debtType = row.debtType?.toLowerCase().replace(' ', '_');
-
-          if (
-            debtTypes.includes(debtType) &&
-            !isNaN(balance) && balance > 0 &&
-            !isNaN(apr) && apr >= 0 &&
-            !isNaN(minimumPayment) && minimumPayment > 0
-          ) {
-            addDebt({
-              debtType: debtType as DebtTradeline['debtType'],
-              balance,
-              apr,
-              minimumPayment,
-            });
-            addedCount++;
-          } else {
-            errorCount++;
-          }
-        });
-
-        if (addedCount > 0) {
-          showSuccess(`Successfully added ${addedCount} debt(s).`);
-        }
-        if (errorCount > 0) {
-          showError(`Skipped ${errorCount} invalid row(s). Please check your file and try again.`);
-        }
-        
-        setFile(null);
-        setIsOpen(false);
-      },
-      error: (error) => {
-        showError(`Error parsing CSV file: ${error.message}`);
-      },
-    });
+    try {
+      const data = await uploadCSVAsync(file);
+      track(AnalyticsEvents.CSV_UPLOADED, { addedCount: data.addedCount, errorCount: data.errorCount });
+      showSuccess(`Successfully added ${data.addedCount || 0} debt(s).`);
+      if (data.errorCount > 0) {
+        showError(`Skipped ${data.errorCount} invalid row(s).`);
+      }
+      setFile(null);
+      setIsOpen(false);
+    } catch (error: any) {
+      showError(error?.message || 'Failed to upload CSV file.');
+    }
   };
 
   return (
@@ -106,7 +73,9 @@ export const CSVUploadDialog = ({ trigger }: { trigger: React.ReactNode }) => {
           <DialogClose asChild>
             <Button type="button" variant="secondary">Cancel</Button>
           </DialogClose>
-          <Button onClick={handleUpload} disabled={!file}>Upload and Add Debts</Button>
+          <Button onClick={handleUpload} disabled={!file || isUploading}>
+            {isUploading ? 'Uploading...' : 'Upload and Add Debts'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
