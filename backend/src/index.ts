@@ -20,7 +20,12 @@ const PORT = process.env.PORT || 3001;
 // Allow multiple origins for development (frontend can run on different ports)
 const allowedOrigins = process.env.FRONTEND_URL 
   ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
-  : ['http://localhost:5173', 'http://localhost:5137', 'http://localhost:3000'];
+  : [
+      'http://localhost:5173', 
+      'http://localhost:5137', 
+      'http://localhost:3000',
+      'https://debt-payoff-optimizer.onrender.com'
+    ];
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
