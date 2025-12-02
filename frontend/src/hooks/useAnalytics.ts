@@ -3,11 +3,11 @@ import { analyticsApi } from '@/services/api';
 
 export const useAnalytics = () => {
   const track = useCallback((eventType: string, eventData?: any) => {
-    // Only track if we have a session
+    // Only track if we have a session and window is available
     if (typeof window !== 'undefined') {
-      analyticsApi.track(eventType, eventData).catch((error) => {
+      analyticsApi.track(eventType, eventData).catch(() => {
         // Silently fail analytics - don't interrupt user experience
-        console.error('Analytics tracking failed:', error);
+        // Analytics failures should not affect the app functionality
       });
     }
   }, []);

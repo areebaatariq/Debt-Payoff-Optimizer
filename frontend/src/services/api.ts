@@ -51,9 +51,11 @@ async function apiRequest<T>(
   } catch (error: any) {
     // Handle network errors (backend not running, CORS, etc.)
     if (error.name === 'TypeError' || error.message.includes('fetch')) {
-      throw new Error(
-        `Failed to connect to backend at ${API_BASE_URL}. Please ensure the backend server is running on port 3001.`
-      );
+      const isProduction = API_BASE_URL.includes('https://');
+      const errorMessage = isProduction
+        ? `Failed to connect to backend at ${API_BASE_URL}. Please ensure the backend server is running and accessible.`
+        : `Failed to connect to backend at ${API_BASE_URL}. Please ensure the backend server is running.`;
+      throw new Error(errorMessage);
     }
     // Re-throw other errors
     throw error;
@@ -198,15 +200,27 @@ export const demoApi = {
 };
 
 // Analytics API
+// Analytics tracking should never throw errors - failures should be silent
 export const analyticsApi = {
   track: async (eventType: string, eventData?: any): Promise<any> => {
-    return apiRequest('/api/analytics/track', {
-      method: 'POST',
-      body: JSON.stringify({ eventType, eventData }),
-    });
+    try {
+      return await apiRequest('/api/analytics/track', {
+        method: 'POST',
+        body: JSON.stringify({ eventType, eventData }),
+      });
+    } catch (error) {
+      // Silently fail analytics - don't interrupt user experience
+      // Analytics failures should not affect app functionality
+      return null;
+    }
   },
   getSession: async (): Promise<any> => {
-    return apiRequest('/api/analytics/session');
+    try {
+      return await apiRequest('/api/analytics/session');
+    } catch (error) {
+      // Silently fail analytics
+      return null;
+    }
   },
 };
 

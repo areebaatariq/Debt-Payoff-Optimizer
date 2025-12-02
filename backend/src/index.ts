@@ -41,6 +41,11 @@ app.use(cors({
       return callback(null, true);
     }
     
+    // In production, allow any Render subdomain
+    if (!isDevelopment && origin.includes('.onrender.com')) {
+      return callback(null, true);
+    }
+    
     // In development, allow any localhost port for flexibility
     if (isDevelopment && origin.startsWith('http://localhost:')) {
       return callback(null, true);
