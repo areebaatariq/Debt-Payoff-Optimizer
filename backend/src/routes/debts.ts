@@ -243,23 +243,33 @@ router.post('/upload', upload.single('file'), (req: AuthenticatedRequest, res: R
     Papa.parse(csvContent, {
       header: true,
       skipEmptyLines: true,
-      complete: (results) => {
-        const debtTypes = ['credit_card', 'personal_loan', 'student_loan', 'auto_loan', 'other'];
-        const addedDebts = [];
-        const errors = [];
+      complete: (results: Papa.ParseResult<any>) => {
+        const debtTypes = [
+          "credit_card",
+          "personal_loan",
+          "student_loan",
+          "auto_loan",
+          "other",
+        ];
+        const addedDebts: any[] = [];
+        const errors: any[] = [];
 
         for (const row of results.data as any[]) {
           try {
             const balance = parseFloat(row.balance);
             const apr = parseFloat(row.apr);
             const minimumPayment = parseFloat(row.minimumPayment);
-            const debtType = row.debtType?.toLowerCase().replace(/\s+/g, '_');
+            const debtType = row.debtType?.toLowerCase().replace(/\s+/g, "_");
 
             if (
               debtTypes.includes(debtType) &&
-              !isNaN(balance) && balance > 0 &&
-              !isNaN(apr) && apr >= 0 && apr <= 100 &&
-              !isNaN(minimumPayment) && minimumPayment > 0
+              !isNaN(balance) &&
+              balance > 0 &&
+              !isNaN(apr) &&
+              apr >= 0 &&
+              apr <= 100 &&
+              !isNaN(minimumPayment) &&
+              minimumPayment > 0
             ) {
               const newDebt = {
                 id: uuidv4(),
@@ -272,21 +282,21 @@ router.post('/upload', upload.single('file'), (req: AuthenticatedRequest, res: R
             } else {
               errors.push({
                 row,
-                reason: 'Invalid data format or values',
+                reason: "Invalid data format or values",
               });
             }
           } catch (error) {
             errors.push({
               row,
-              reason: 'Error parsing row',
+              reason: "Error parsing row",
             });
           }
         }
 
         if (addedDebts.length === 0) {
           return res.status(400).json({
-            error: 'No valid debts found',
-            message: 'The CSV file did not contain any valid debt records',
+            error: "No valid debts found",
+            message: "The CSV file did not contain any valid debt records",
             errors,
           });
         }
@@ -299,8 +309,8 @@ router.post('/upload', upload.single('file'), (req: AuthenticatedRequest, res: R
 
         if (!success) {
           return res.status(500).json({
-            error: 'Failed to save debts',
-            message: 'An error occurred while saving your debts',
+            error: "Failed to save debts",
+            message: "An error occurred while saving your debts",
           });
         }
 
@@ -317,8 +327,10 @@ router.post('/upload', upload.single('file'), (req: AuthenticatedRequest, res: R
       },
       error: (error: any) => {
         res.status(400).json({
-          error: 'CSV parsing error',
-          message: `Error parsing CSV file: ${error.message || 'Unknown error'}`,
+          error: "CSV parsing error",
+          message: `Error parsing CSV file: ${
+            error.message || "Unknown error"
+          }`,
         });
       },
     });

@@ -3,6 +3,7 @@ import { sessionManager } from '../utils/sessionManager';
 
 export interface AuthenticatedRequest extends Request {
   sessionId?: string;
+  file?: Express.Multer.File;
 }
 
 export const requireSession = (

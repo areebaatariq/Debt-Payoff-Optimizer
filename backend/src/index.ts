@@ -29,51 +29,66 @@ const allowedOrigins = process.env.FRONTEND_URL
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, Postman, curl, etc.)
-    if (!origin) {
-      return callback(null, true);
-    }
-    
-    // Always allow any Render subdomain (production or development on Render)
-    if (origin.includes('.onrender.com')) {
-      console.log(`CORS: Allowing Render origin: ${origin}`);
-      return callback(null, true);
-    }
-    
-    // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    // In development, allow any localhost port for flexibility
-    if (isDevelopment && origin.startsWith('http://localhost:')) {
-      return callback(null, true);
-    }
-    
-    // Also allow 127.0.0.1 in development
-    if (isDevelopment && origin.startsWith('http://127.0.0.1:')) {
-      return callback(null, true);
-    }
-    
-    // Log rejected origin for debugging
-    console.warn(`CORS: Origin "${origin}" not allowed. Allowed origins: ${allowedOrigins.join(', ')}`);
-    callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Session-Id'],
-  preflightContinue: false, // Let CORS middleware handle OPTIONS requests
-  optionsSuccessStatus: 200, // Some legacy browsers (IE11) choke on 204
-}));
+app.use(
+  cors({
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void
+    ) => {
+      // Allow requests with no origin (mobile apps, Postman, curl, etc.)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      // Always allow any Render subdomain (production or development on Render)
+      if (origin.includes(".onrender.com")) {
+        console.log(`CORS: Allowing Render origin: ${origin}`);
+        return callback(null, true);
+      }
+
+      // Check if origin is in allowed list
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // In development, allow any localhost port for flexibility
+      if (isDevelopment && origin.startsWith("http://localhost:")) {
+        return callback(null, true);
+      }
+
+      // Also allow 127.0.0.1 in development
+      if (isDevelopment && origin.startsWith("http://127.0.0.1:")) {
+        return callback(null, true);
+      }
+
+      // Log rejected origin for debugging
+      console.warn(
+        `CORS: Origin "${origin}" not allowed. Allowed origins: ${allowedOrigins.join(
+          ", "
+        )}`
+      );
+      callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Session-Id"],
+    preflightContinue: false, // Let CORS middleware handle OPTIONS requests
+    optionsSuccessStatus: 200, // Some legacy browsers (IE11) choke on 204
+  })
+);
 // Request logging middleware (for debugging)
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    console.log(`🔍 OPTIONS preflight: ${req.path} from origin: ${req.headers.origin || 'none'}`);
+app.use(
+  (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (req.method === "OPTIONS") {
+      console.log(
+        `🔍 OPTIONS preflight: ${req.path} from origin: ${
+          req.headers.origin || "none"
+        }`
+      );
+    }
+    next();
   }
-  next();
-});
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -81,85 +96,113 @@ app.use(express.urlencoded({ extended: true }));
 // Handle OPTIONS requests for all API routes (CORS preflight)
 // This is a fallback in case CORS middleware doesn't catch it
 // Handle /api/* routes specifically
-app.options('/api/*', (req, res) => {
+app.options("/api/*", (req: express.Request, res: express.Response) => {
   const origin = req.headers.origin;
-  
+
   // Check if origin should be allowed (same logic as CORS middleware)
   let allowOrigin = false;
   if (!origin) {
     allowOrigin = true;
-  } else if (origin.includes('.onrender.com')) {
+  } else if (origin.includes(".onrender.com")) {
     allowOrigin = true;
   } else if (allowedOrigins.includes(origin)) {
     allowOrigin = true;
-  } else if (isDevelopment && origin.startsWith('http://localhost:')) {
+  } else if (isDevelopment && origin.startsWith("http://localhost:")) {
     allowOrigin = true;
-  } else if (isDevelopment && origin.startsWith('http://127.0.0.1:')) {
+  } else if (isDevelopment && origin.startsWith("http://127.0.0.1:")) {
     allowOrigin = true;
   }
-  
+
   if (allowOrigin) {
     if (origin) {
-      res.header('Access-Control-Allow-Origin', origin);
+      res.header("Access-Control-Allow-Origin", origin);
     }
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Max-Age', '86400'); // 24 hours
-    console.log(`✅ OPTIONS preflight handled for: ${req.path} from origin: ${origin || 'none'}`);
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, X-Session-Id"
+    );
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Max-Age", "86400"); // 24 hours
+    console.log(
+      `✅ OPTIONS preflight handled for: ${req.path} from origin: ${
+        origin || "none"
+      }`
+    );
     return res.sendStatus(200);
   }
-  
+
   // If origin not allowed, return 403
-  console.warn(`❌ OPTIONS preflight rejected for: ${req.path} from origin: ${origin || 'none'}`);
+  console.warn(
+    `❌ OPTIONS preflight rejected for: ${req.path} from origin: ${
+      origin || "none"
+    }`
+  );
   return res.status(403).json({
-    error: 'Forbidden',
-    message: 'CORS policy: Origin not allowed',
+    error: "Forbidden",
+    message: "CORS policy: Origin not allowed",
   });
 });
 
 // Fallback for all other OPTIONS requests
-app.options('*', (req, res) => {
+app.options("*", (req: express.Request, res: express.Response) => {
   const origin = req.headers.origin;
-  
+
   // Check if origin should be allowed (same logic as CORS middleware)
   let allowOrigin = false;
   if (!origin) {
     allowOrigin = true;
-  } else if (origin.includes('.onrender.com')) {
+  } else if (origin.includes(".onrender.com")) {
     allowOrigin = true;
   } else if (allowedOrigins.includes(origin)) {
     allowOrigin = true;
-  } else if (isDevelopment && origin.startsWith('http://localhost:')) {
+  } else if (isDevelopment && origin.startsWith("http://localhost:")) {
     allowOrigin = true;
-  } else if (isDevelopment && origin.startsWith('http://127.0.0.1:')) {
+  } else if (isDevelopment && origin.startsWith("http://127.0.0.1:")) {
     allowOrigin = true;
   }
-  
+
   if (allowOrigin) {
     if (origin) {
-      res.header('Access-Control-Allow-Origin', origin);
+      res.header("Access-Control-Allow-Origin", origin);
     }
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Max-Age', '86400'); // 24 hours
-    console.log(`✅ OPTIONS preflight handled for: ${req.path} from origin: ${origin || 'none'}`);
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, X-Session-Id"
+    );
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Max-Age", "86400"); // 24 hours
+    console.log(
+      `✅ OPTIONS preflight handled for: ${req.path} from origin: ${
+        origin || "none"
+      }`
+    );
     return res.sendStatus(200);
   }
-  
+
   // If origin not allowed, return 403
-  console.warn(`❌ OPTIONS preflight rejected for: ${req.path} from origin: ${origin || 'none'}`);
+  console.warn(
+    `❌ OPTIONS preflight rejected for: ${req.path} from origin: ${
+      origin || "none"
+    }`
+  );
   return res.status(403).json({
-    error: 'Forbidden',
-    message: 'CORS policy: Origin not allowed',
+    error: "Forbidden",
+    message: "CORS policy: Origin not allowed",
   });
 });
 
 // Health check
-app.get('/health', (req, res) => {
+app.get("/health", (req: express.Request, res: express.Response) => {
   res.json({
-    status: 'ok',
+    status: "ok",
     timestamp: new Date().toISOString(),
   });
 });
@@ -176,9 +219,9 @@ app.use('/api/demo', demoRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
 // 404 handler
-app.use((req, res) => {
+app.use((req: express.Request, res: express.Response) => {
   res.status(404).json({
-    error: 'Not Found',
+    error: "Not Found",
     message: `Cannot ${req.method} ${req.path}`,
   });
 });
