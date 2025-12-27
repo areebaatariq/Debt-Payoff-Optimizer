@@ -30,17 +30,16 @@ const allowedOrigins = process.env.FRONTEND_URL
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-// CORS configuration - VERY permissive for Render
 app.use(cors({
   origin: (origin, callback) => {
-    // Always allow requests with no origin
+    // Allow requests with no origin (mobile apps, Postman, curl, etc.)
     if (!origin) {
       return callback(null, true);
     }
     
-    // ALWAYS allow any Render subdomain - this is the key fix
+    // Always allow any Render subdomain (production or development on Render)
     if (origin.includes('.onrender.com')) {
-      console.log(`✅ CORS: Allowing Render origin: ${origin}`);
+      console.log(`CORS: Allowing Render origin: ${origin}`);
       return callback(null, true);
     }
     
@@ -60,24 +59,19 @@ app.use(cors({
     }
     
     // Log rejected origin for debugging
-    console.warn(`❌ CORS: Origin "${origin}" not allowed. Allowed origins: ${allowedOrigins.join(', ')}`);
+    console.warn(`CORS: Origin "${origin}" not allowed. Allowed origins: ${allowedOrigins.join(', ')}`);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Session-Id', 'Accept'],
-  exposedHeaders: ['Content-Type', 'Authorization', 'X-Session-Id'],
-  preflightContinue: false,
-  optionsSuccessStatus: 200,
-  maxAge: 86400, // 24 hours
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Session-Id'],
+  preflightContinue: false, // Let CORS middleware handle OPTIONS requests
+  optionsSuccessStatus: 200, // Some legacy browsers (IE11) choke on 204
 }));
-
-// Request logging middleware (for debugging CORS)
+// Request logging middleware (for debugging)
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
-    console.log(`🔍 OPTIONS preflight: ${req.method} ${req.path} from origin: ${req.headers.origin || 'none'}`);
-  } else {
-    console.log(`📥 ${req.method} ${req.path} from origin: ${req.headers.origin || 'none'}`);
+    console.log(`🔍 OPTIONS preflight: ${req.path} from origin: ${req.headers.origin || 'none'}`);
   }
   next();
 });
@@ -85,11 +79,13 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Handle ALL OPTIONS requests (CORS preflight) - must be before routes
-app.options('*', (req, res) => {
+// Handle OPTIONS requests for all API routes (CORS preflight)
+// This is a fallback in case CORS middleware doesn't catch it
+// Handle /api/* routes specifically
+app.options('/api/*', (req, res) => {
   const origin = req.headers.origin;
   
-  // Check if origin should be allowed
+  // Check if origin should be allowed (same logic as CORS middleware)
   let allowOrigin = false;
   if (!origin) {
     allowOrigin = true;
@@ -107,25 +103,64 @@ app.options('*', (req, res) => {
     if (origin) {
       res.header('Access-Control-Allow-Origin', origin);
     }
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id, Accept');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id');
     res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Max-Age', '86400');
-    console.log(`✅ OPTIONS handled: ${req.path} from ${origin || 'none'}`);
+    res.header('Access-Control-Max-Age', '86400'); // 24 hours
+    console.log(`✅ OPTIONS preflight handled for: ${req.path} from origin: ${origin || 'none'}`);
     return res.sendStatus(200);
   }
   
-  console.warn(`❌ OPTIONS rejected: ${req.path} from ${origin || 'none'}`);
+  // If origin not allowed, return 403
+  console.warn(`❌ OPTIONS preflight rejected for: ${req.path} from origin: ${origin || 'none'}`);
   return res.status(403).json({
     error: 'Forbidden',
     message: 'CORS policy: Origin not allowed',
   });
 });
 
+// Fallback for all other OPTIONS requests
+app.options('*', (req, res) => {
+  const origin = req.headers.origin;
+  
+  // Check if origin should be allowed (same logic as CORS middleware)
+  let allowOrigin = false;
+  if (!origin) {
+    allowOrigin = true;
+  } else if (origin.includes(".onrender.com")) {
+    allowOrigin = true;
+  } else if (allowedOrigins.includes(origin)) {
+    allowOrigin = true;
+  } else if (isDevelopment && origin.startsWith("http://localhost:")) {
+    allowOrigin = true;
+  } else if (isDevelopment && origin.startsWith("http://127.0.0.1:")) {
+    allowOrigin = true;
+  }
+
+  if (allowOrigin) {
+    if (origin) {
+      res.header("Access-Control-Allow-Origin", origin);
+    }
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400'); // 24 hours
+    console.log(`✅ OPTIONS preflight handled for: ${req.path} from origin: ${origin || 'none'}`);
+    return res.sendStatus(200);
+  }
+  
+  // If origin not allowed, return 403
+  console.warn(`❌ OPTIONS preflight rejected for: ${req.path} from origin: ${origin || 'none'}`);
+  return res.status(403).json({
+    error: "Forbidden",
+    message: "CORS policy: Origin not allowed",
+  });
+});
+
 // Health check
-app.get('/health', (req, res) => {
+app.get("/health", (req: express.Request, res: express.Response) => {
   res.json({
-    status: 'ok',
+    status: "ok",
     timestamp: new Date().toISOString(),
   });
 });
@@ -142,9 +177,9 @@ app.use('/api/demo', demoRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
 // 404 handler
-app.use((req, res) => {
+app.use((req: express.Request, res: express.Response) => {
   res.status(404).json({
-    error: 'Not Found',
+    error: "Not Found",
     message: `Cannot ${req.method} ${req.path}`,
   });
 });
