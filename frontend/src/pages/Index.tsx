@@ -27,7 +27,7 @@ const Index = () => {
 
   if (showIntro) {
     return (
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 text-foreground">
         <main className="py-8">
           <OnboardingIntro 
             onComplete={handleIntroComplete}
@@ -40,7 +40,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 text-foreground">
       <main className="py-8">
         {financialContext ? <Dashboard /> : <OnboardingForm />}
       </main>

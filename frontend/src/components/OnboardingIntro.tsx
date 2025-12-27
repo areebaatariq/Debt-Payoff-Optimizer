@@ -50,15 +50,17 @@ export const OnboardingIntro = ({ onComplete, onLoadDemo }: OnboardingIntroProps
 
   return (
     <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-2xl">
-      <Card>
+      <Card className="shadow-elevated">
         <CardHeader>
-          <div className="flex items-center justify-center mb-4">
-            <div className="p-4 rounded-full bg-primary/10">
-              <Icon className="h-8 w-8 text-primary" />
+          <div className="flex items-center justify-center mb-6">
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 shadow-soft">
+              <Icon className="h-10 w-10 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl text-center">{steps[currentStep].title}</CardTitle>
-          <CardDescription className="text-center mt-2">
+          <CardTitle className="text-2xl md:text-3xl text-center bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            {steps[currentStep].title}
+          </CardTitle>
+          <CardDescription className="text-center mt-4 text-base leading-relaxed max-w-lg mx-auto">
             {steps[currentStep].description}
           </CardDescription>
         </CardHeader>
@@ -68,11 +70,11 @@ export const OnboardingIntro = ({ onComplete, onLoadDemo }: OnboardingIntroProps
             {steps.map((_, index) => (
               <div
                 key={index}
-                className={`h-2 w-2 rounded-full transition-colors ${
+                className={`h-2.5 w-2.5 rounded-full transition-all duration-300 ${
                   index === currentStep
-                    ? 'bg-primary'
+                    ? 'bg-primary w-8 shadow-sm'
                     : index < currentStep
-                    ? 'bg-primary/50'
+                    ? 'bg-primary/60'
                     : 'bg-muted'
                 }`}
               />
@@ -85,6 +87,7 @@ export const OnboardingIntro = ({ onComplete, onLoadDemo }: OnboardingIntroProps
                 variant="outline"
                 onClick={() => setCurrentStep(currentStep - 1)}
                 className="flex-1"
+                size="lg"
               >
                 Previous
               </Button>
@@ -92,6 +95,7 @@ export const OnboardingIntro = ({ onComplete, onLoadDemo }: OnboardingIntroProps
             <Button
               onClick={handleNext}
               className={currentStep > 0 ? 'flex-1' : 'flex-1 ml-auto'}
+              size="lg"
             >
               {currentStep === steps.length - 1 ? 'Get Started' : 'Next'}
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -119,5 +123,7 @@ export const OnboardingIntro = ({ onComplete, onLoadDemo }: OnboardingIntroProps
     </div>
   );
 };
+
+
 
 

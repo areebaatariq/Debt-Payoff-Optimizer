@@ -43,3 +43,5 @@ npm run dev
 The AI guidance will now use Gemini instead of OpenAI!
 
 
+
+

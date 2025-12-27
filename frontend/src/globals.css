@@ -4,51 +4,51 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Soft, calming background - very light blue-gray */
+    --background: 210 30% 98.5%;
+    --foreground: 215 25% 20%;
 
+    /* Card with subtle elevation - soft white with slight blue tint */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 215 25% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 215 25% 20%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - soft, trustworthy blue */
+    --primary: 210 70% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - soft green for positive actions */
+    --secondary: 150 30% 95%;
+    --secondary-foreground: 150 50% 25%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted - soft neutral gray-blue */
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent - soft teal-green */
+    --accent: 170 40% 92%;
+    --accent-foreground: 170 50% 25%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 58%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Borders - very subtle blue-gray */
+    --border: 210 25% 90%;
+    --input: 210 25% 92%;
+    --ring: 210 70% 50%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 210 20% 98%;
+    --sidebar-foreground: 215 25% 20%;
+    --sidebar-primary: 210 70% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 170 30% 94%;
+    --sidebar-accent-foreground: 170 50% 25%;
+    --sidebar-border: 210 25% 90%;
+    --sidebar-ring: 210 70% 50%;
   }
 
   .dark {
@@ -97,5 +97,51 @@
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+    letter-spacing: -0.01em;
+  }
+
+  h1 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h2 {
+    @apply text-2xl md:text-3xl;
+  }
+
+  h3 {
+    @apply text-xl md:text-2xl;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(210 70% 50%) 0%, hsl(200 65% 55%) 100%);
+  }
+
+  .gradient-card {
+    background: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(210 30% 99%) 100%);
+  }
+
+  .shadow-soft {
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 4px 16px -4px rgba(0, 0, 0, 0.05);
+  }
+
+  .shadow-elevated {
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08), 0 8px 24px -4px rgba(0, 0, 0, 0.06);
+  }
+
+  .shadow-hover {
+    transition: box-shadow 0.3s ease;
+  }
+
+  .shadow-hover:hover {
+    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.12), 0 12px 32px -6px rgba(0, 0, 0, 0.08);
   }
 }

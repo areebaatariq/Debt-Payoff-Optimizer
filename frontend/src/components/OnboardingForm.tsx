@@ -66,10 +66,14 @@ export const OnboardingForm = () => {
 
   return (
     <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-2xl">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Welcome to PathLight</CardTitle>
-          <CardDescription>Let's start with a snapshot of your finances to create your personalized debt payoff plan.</CardDescription>
+      <Card className="shadow-elevated">
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="text-3xl md:text-4xl bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            Welcome to PathLight
+          </CardTitle>
+          <CardDescription className="text-base mt-3 max-w-lg mx-auto">
+            Let's start with a snapshot of your finances to create your personalized debt payoff plan.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -191,12 +195,15 @@ export const OnboardingForm = () => {
                   </FormItem>
                 )}
               />
-              <div className="space-y-3">
-                <Button type="submit" className="w-full">Get Started</Button>
+              <div className="space-y-3 pt-2">
+                <Button type="submit" className="w-full" size="lg">
+                  Get Started
+                </Button>
                 <Button
                   type="button"
                   variant="outline"
                   className="w-full"
+                  size="lg"
                   onClick={loadDemo}
                   disabled={isDemoLoading}
                 >

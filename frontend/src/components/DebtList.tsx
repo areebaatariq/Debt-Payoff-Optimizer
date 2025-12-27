@@ -85,37 +85,43 @@ export const DebtList = () => {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
+      <CardHeader className="flex flex-row items-center justify-between pb-4">
+        <div className="space-y-1">
           <CardTitle>Your Debts</CardTitle>
-          {strategy === 'custom' && <p className="text-sm text-muted-foreground">Use the arrows to set your payoff priority (top to bottom).</p>}
+          {strategy === 'custom' && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Use the arrows to set your payoff priority (top to bottom).
+            </p>
+          )}
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <CSVUploadDialog 
             trigger={
-              <Button variant="outline" size="sm">
-                <Upload className="mr-2 h-4 w-4" />
+              <Button variant="outline" size="sm" className="gap-2">
+                <Upload className="h-4 w-4" />
                 Upload CSV
               </Button>
             } 
           />
-          <AddEditDebtDialog trigger={<Button size="sm">Add New Debt</Button>} />
+          <AddEditDebtDialog trigger={<Button size="sm" className="gap-2">Add New Debt</Button>} />
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {showAISummary && aiSummary && (
-          <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950">
+          <Alert className="border-primary/20 bg-primary/5 rounded-lg">
             <AlertDescription>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="font-medium mb-1">💡 AI Insight</p>
-                  <p className="text-sm">{aiSummary}</p>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 space-y-1">
+                  <p className="font-semibold text-primary flex items-center gap-2">
+                    <span className="text-lg">💡</span> AI Insight
+                  </p>
+                  <p className="text-sm text-foreground/80 leading-relaxed">{aiSummary}</p>
                 </div>
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={() => setShowAISummary(false)}
-                  className="ml-2"
+                  className="h-6 w-6 rounded-full hover:bg-primary/10"
                 >
                   ×
                 </Button>
