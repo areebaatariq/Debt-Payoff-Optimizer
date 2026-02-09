@@ -48,7 +48,7 @@ npm run dev
 
 ## 🌐 Live Demo
 
-[View Live Application](https://debt-optimizer.onrender.com)
+[View Live Application](https://debt-payoff-optimizer-jcip.onrender.com)
 
 ## 📝 License
 

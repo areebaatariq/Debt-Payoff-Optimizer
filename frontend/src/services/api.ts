@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001' : 'https://debt-payoff-optimizer-jcip.onrender.com');
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001' : 'https://debt-optimizer.onrender.com');
 
 // Session management
 const SESSION_STORAGE_KEY = 'pathlight_session_id';

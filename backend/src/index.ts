@@ -25,7 +25,7 @@ const allowedOrigins = process.env.FRONTEND_URL
       'http://localhost:5138',
       'http://localhost:5137', 
       'http://localhost:3000',
-      'https://debt-optimizer.onrender.com'
+      'https://debt-payoff-optimizer-jcip.onrender.com'
     ];
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
