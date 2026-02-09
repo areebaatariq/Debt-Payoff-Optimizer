@@ -1,0 +1,14 @@
+# Render deployment (optional: remove this line to track render.yaml and use Render Blueprint from repo)
+render.yaml
+
+# Root-level env and IDE
+.env
+.env.local
+.env.*.local
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# Logs
+*.log
