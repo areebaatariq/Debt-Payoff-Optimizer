@@ -3,7 +3,6 @@ import { useAppContext } from "@/contexts/AppContext";
 import { OnboardingForm } from "@/components/OnboardingForm";
 import { OnboardingIntro } from "@/components/OnboardingIntro";
 import Dashboard from "./Dashboard";
-import { MadeWithDyad } from "@/components/made-with-dyad";
 import { useDemo } from "@/hooks/useDemo";
 import { useAnalytics, AnalyticsEvents } from "@/hooks/useAnalytics";
 
@@ -34,7 +33,6 @@ const Index = () => {
             onLoadDemo={handleLoadDemo}
           />
         </main>
-        <MadeWithDyad />
       </div>
     );
   }
@@ -44,7 +42,6 @@ const Index = () => {
       <main className="py-8">
         {financialContext ? <Dashboard /> : <OnboardingForm />}
       </main>
-      <MadeWithDyad />
     </div>
   );
 };
